@@ -11,15 +11,26 @@ export function loginUser(user: User, onResult: SessionCallback, onError: ErrorC
             body: JSON.stringify(user),
         })
         .then(async (response) => {
+            const contentType = response.headers.get('content-type') || '';
             if (response.ok) {
-                const session = await response.json() as Session;
-                sessionStorage.setItem('token', session.token);
-                sessionStorage.setItem('externalId', session.externalId);
-                sessionStorage.setItem('username', session.username || "");
-                onResult(session)
+                if (contentType.includes('application/json')) {
+                    const session = await response.json() as Session;
+                    sessionStorage.setItem('token', session.token);
+                    sessionStorage.setItem('externalId', session.externalId);
+                    sessionStorage.setItem('username', session.username || "");
+                    onResult(session)
+                } else {
+                    const text = await response.text();
+                    onError({message: `Server returned non-JSON response: ${text.substring(0,200)}`} as CustomError);
+                }
             } else {
-                const error = await response.json() as CustomError;
-                onError(error);
+                if (contentType.includes('application/json')) {
+                    const error = await response.json() as CustomError;
+                    onError(error);
+                } else {
+                    const text = await response.text();
+                    onError({message: `Server error: ${text.substring(0,200)}`} as CustomError);
+                }
             }
         }, onError);
 }
