@@ -3,10 +3,12 @@ import { Redis } from '@upstash/redis';
 import { sql } from '@vercel/postgres';
 const PushNotifications = require("@pusher/push-notifications-server");
 
-const redis = Redis.fromEnv();
-
 export default async (request, response) => {
     try {
+        const redis = new Redis({
+            url: process.env.KV_REST_API_URL,
+            token: process.env.KV_REST_API_TOKEN,
+        });
         const user = await getConnecterUser(request);
         if (user === undefined || user === null) {
             console.log("Not connected");
@@ -15,7 +17,7 @@ export default async (request, response) => {
         }
 
         if (request.method === 'POST') {
-            const body = await request.json();
+            const body = request.body;
             // expected body: {type: 'user'|'room', targetId, content}
             const {type, targetId, content} = body;
             if (!type || !targetId || !content) {
@@ -69,9 +71,7 @@ export default async (request, response) => {
             return response.send('OK');
         } else if (request.method === 'GET') {
             // read query params to identify conversation
-            const url = new URL(request.url);
-            const type = url.searchParams.get('type');
-            const targetId = url.searchParams.get('targetId');
+            const { type, targetId } = request.query;
             if (!type || !targetId) {
                 return response.status(400).json({code: 'BAD_REQUEST', message: 'Missing query params'});
             }

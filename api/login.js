@@ -6,10 +6,12 @@ export const config = {
     runtime: 'edge',
 };
 
-const redis = Redis.fromEnv();
-
 export default async function handler(request) {
     try {
+        const redis = new Redis({
+            url: process.env.KV_REST_API_URL,
+            token: process.env.KV_REST_API_TOKEN,
+        });
         const {username, password} = await request.json();
         const hash = await crypto.subtle.digest('SHA-256', stringToArrayBuffer(username + password));
         const hashed64 = arrayBufferToBase64(hash);

@@ -19,6 +19,8 @@
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.4",
     "react-scripts": "5.0.1",
+    "@reduxjs/toolkit": "^1.9.5",
+    "react-redux": "^8.1.2",
     "vercel": "^48.4.1",
     "web-vitals": "^5.1.0"
   },
